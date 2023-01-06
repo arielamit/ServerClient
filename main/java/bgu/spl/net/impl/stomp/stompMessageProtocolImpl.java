@@ -38,18 +38,18 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
                 break;
             case "SUBSCRIBE":
                 if(connectionCheck(connectionId))
-                    applySubscribe(frame messageToFrame);
+                    applySubscribe(messageToFrame);
                 break;
             case "UNSUBSCRIBE":
                 if(connectionCheck(connectionId))
-                    applyUnsubscribe();
+                    applyUnsubscribe(messageToFrame);
                 break;
             case "SEND":
                 if(connectionCheck(connectionId))
-                     applySend();
+                     applySend(messageToFrame);
                 break;
             default:
-                applyError();
+                applyError(messageToFrame);
         }
     }
 
@@ -66,7 +66,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
         return false;
     }
-
 
     private void applyConnect(frame messageToFrame)
     {
@@ -111,7 +110,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
     }
 
-
     private void applyDisconnect(frame messageToFrame)
     {
         if(messageToFrame.getHeader("receipt -id") == null || !messageToFrame.getBody().isEmpty())
@@ -126,7 +124,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             connections.disconnectUser(u);
         }
     }
-
 
     private void applySubscribe(frame messageToFrame)
     {
@@ -143,15 +140,38 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
     }
 
+//    private void applyUnsubscribe(frame messageToFrame)
+//    {
+//
+//    }
 
+    private void applySend(frame messageToFrame)
+    {
+        String id = messageToFrame.headers.get("destination");
+        //check if the frame has only destination header
+        if(messageToFrame.headers.size()!=1 || id==null)
+        {
+            frame error = messageToFrame.errorFrame(messageToFrame);
+            connections.send(connectionId, (T) error.frameToString());
+            connections.disconnect(connectionId);
+        }
+        //check if the user subscribe the destination topic
+        else if(!connections.allUsersByName.get(connectionId).subscriptionIDToTopic.containsValue(id))
+        {
+            frame error = messageToFrame.errorFrame(messageToFrame);
+            connections.send(connectionId, (T) error.frameToString());
+            connections.disconnect(connectionId);
+        }
+        else
+        {
+            messageToFrame.messageFrame(messageToFrame);
+        }
+    }
 
     @Override
     public boolean shouldTerminate() {
         return false;
     }
-
-
-
 
     private void receiptCheck(frame messageToFrame)
     {
