@@ -8,16 +8,17 @@ import java.util.List;
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
-    public List<User> connectedUsers = new ArrayList<User>();
-    public HashMap<Integer , User> allUsersById = new HashMap<Integer , User>();
-    public HashMap<String , User> allUsersByName = new HashMap<String , User>();
-//    public HashMap<String, List> topicToUsers = new HashMap<String, new ArrayList<Integer>()>();
+    public List<User> connectedUsers ;
+    public HashMap<Integer , User> allUsersById ;
+    public HashMap<String , User> allUsersByName ;
+    public HashMap<String, ArrayList<Integer>> topicToUsers ;
 
     public ConnectionsImpl()
     {
         connectedUsers =  new ArrayList<User>();
         allUsersById = new HashMap<Integer , User>();
-
+        allUsersByName = new HashMap<String , User>();
+        topicToUsers = new HashMap<String , ArrayList<Integer>>();
     }
 
     @Override
@@ -67,6 +68,12 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     public void subscribe(String destination, Integer id, int connectionId)
     {
+        if(topicToUsers.get(destination) == null)
+        {
+            topicToUsers.put(destination,new ArrayList<>());
+        }
+        topicToUsers.get(destination).add(connectionId);
+        allUsersById.get(connectionId)
 
     }
 }
