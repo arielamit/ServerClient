@@ -1,10 +1,8 @@
 package bgu.spl.net.srv;
 
-import java.io.IOException;
-
 public interface Connections<T> {
 
-    boolean send(int connectionId, T msg);
+    boolean send(int connectionId, String msg);
 
     void send(String channel, T msg);
 
