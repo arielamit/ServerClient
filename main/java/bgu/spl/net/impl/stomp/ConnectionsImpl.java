@@ -68,22 +68,23 @@ public class ConnectionsImpl<T> implements Connections<T> {
         if(isUserExistById(connectionId))
         {
             User toDisconnect = getUser(connectionId);
-            toDisconnect.setLogin();
+            toDisconnect.isLoggedIn = false;
             connectedUsers.remove(toDisconnect); //remove from list of connected users
-            HashMap<Integer , String > subscriptionIDToTopic = toDisconnect.subscriptionIDToTopic;
             for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
                 topicToUsers.remove(s, toDisconnect);
         }
-        //TODO : delete socket
+        idToConnectionHandler.remove(connectionId);
     }
+
+
     public void disconnectUser (User toDisconnect)
     {
         connectedUsers.remove(toDisconnect); //remove from list of connected users
         toDisconnect.isLoggedIn = false;
-        HashMap<Integer , String > subscriptionIDToTopic = toDisconnect.subscriptionIDToTopic;
         for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
             topicToUsers.remove(s, toDisconnect);
-        //TODO : delete socket
+
+        idToConnectionHandler.remove(toDisconnect.connectionId);
     }
 
 
