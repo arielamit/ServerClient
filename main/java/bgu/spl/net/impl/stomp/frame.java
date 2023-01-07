@@ -62,15 +62,13 @@ public class frame {
     {
         return new frame("CONNECTED \n version:1.2");
     }
+
     public frame messageFrame(frame sent)
     {
-        String subId = sent.getHeader("subscription");
-        String messId = sent.getHeader("message-id");
+        //TODO : fix message ID
         String dest = sent.getHeader("destination");
         String bodyMes = sent.getBody();
         frame message = new frame("MESSAGE \n " +
-                "subscription:"+subId+
-                "\n message-id:"+messId+
                 "\n destination:/topic/"+dest+
                 "\n \n"+bodyMes);
         return message;
