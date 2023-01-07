@@ -38,20 +38,21 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
                 break;
             case "SUBSCRIBE":
                 if(connectionCheck(connectionId))
-                    applySubscribe(frame messageToFrame);
+                    applySubscribe(messageToFrame);
                 break;
             case "UNSUBSCRIBE":
                 if(connectionCheck(connectionId))
-                    applyUnsubscribe();
+                    applyUnsubscribe(messageToFrame);
                 break;
             case "SEND":
                 if(connectionCheck(connectionId))
-                     applySend();
+                    applySend(messageToFrame);
                 break;
             default:
                 applyError();
         }
     }
+
 
     private boolean connectionCheck (int ID)
     {
@@ -60,7 +61,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         else
         {
             String error = "ERROR\n";
-            error += "User is not connected\n";
+            error += "User is not undefined\n";
             connections.send(connectionId, (T) error);
             connections.disconnect(connectionId);
         }
@@ -81,7 +82,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         if(!exist)
         {
             User new_User = new User(username,password, connectionId);
-            connections.addNewUser(new_User);
+            connections.addNewUser(new_User, connectionId);
 
             // send to the client confirmation
             frame confirmation = messageToFrame.connectedFrame();
@@ -90,18 +91,18 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             receiptCheck(messageToFrame);
 
         }else{
-            //check if already connected || if the password is correct
-            if (connections.allUsersByName.get(username).isLoggedIn ||!connections.allUsersByName.get(username).userPassword.equals(password) )
+            //check if already connected || if the password is incorrect
+            if (connections.allUsersByName.get(username).isLoggedIn || !connections.allUsersByName.get(username).userPassword.equals(password) )
             {
                 frame error = messageToFrame.errorFrame(messageToFrame);
                 connections.send(connectionId, (T) error.frameToString());
-                //TODO : check if need to disconnect
+                connections.disconnect(connectionId);
 
                 // connect the user
             }else{
 
                 User user = connections.allUsersByName.get(username);
-                connections.loginUser(user);
+                connections.loginUser(user, connectionId);
 
                 // send to the client confirmation
                 frame confirmation = messageToFrame.connectedFrame();
@@ -124,6 +125,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             User u = connections.getUser(connectionId);
             connections.send(connectionId, (T) reciept.frameToString());
             connections.disconnectUser(u);
+            //TODO : check if disconnect is needed
         }
     }
 
@@ -139,6 +141,52 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             String destination = messageToFrame.getHeader("destination");
             Integer id = Integer.parseInt(messageToFrame.getHeader("id"));
             connections.subscribe(destination,id, connectionId );
+            receiptCheck(messageToFrame);
+        }
+    }
+
+
+
+    private void applyUnsubscribe(frame messageToFrame)
+    {
+        if(!messageToFrame.body.isEmpty() || messageToFrame.getHeader("id") == null )
+        {
+            frame error = messageToFrame.errorFrame(messageToFrame);
+            connections.send(connectionId, (T) error.frameToString());
+            connections.disconnect(connectionId);
+        }else {
+            Integer id = Integer.parseInt(messageToFrame.getHeader("id"));
+            connections.unsubscribe(id, connectionId);
+            receiptCheck(messageToFrame);
+        }
+    }
+
+
+
+    private void applySend(frame messageToFrame)
+    {
+        String id = messageToFrame.headers.get("destination");
+        //check if the frame has only destination header
+        if(messageToFrame.headers.size()!=1 || id==null)
+        {
+            frame error = messageToFrame.errorFrame(messageToFrame);
+            connections.send(connectionId, (T) error.frameToString());
+            connections.disconnect(connectionId);
+        }
+        //check if the user subscribe the destination topic
+        else if(!connections.allUsersById.get(connectionId).subscriptionIDToTopic.containsValue(id))
+        {
+            frame error = messageToFrame.errorFrame(messageToFrame);
+            connections.send(connectionId, (T) error.frameToString());
+            connections.disconnect(connectionId);
+        }
+        else
+        {
+            connections.addMessage(messageToFrame);
+            //TODO : make down function a local function
+            frame msg = connections.createMessage(messageToFrame);
+            //TODO : check how to send msg NOT to channel
+            connections.send(id, (T) msg.frameToString());
             receiptCheck(messageToFrame);
         }
     }

@@ -34,4 +34,9 @@ public class User
     {
         subscriptionIDToTopic.remove(ID, topic);
     }
+
+    public String idToTopic (int ID)
+    {
+        return subscriptionIDToTopic.get(ID);
+    }
 }
