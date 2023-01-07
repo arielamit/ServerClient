@@ -49,10 +49,9 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
                     applySend(messageToFrame);
                 break;
             default:
-                applyError();
+                applyError(messageToFrame);
         }
     }
-
 
     private boolean connectionCheck (int ID)
     {
@@ -67,7 +66,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
         return false;
     }
-
 
     private void applyConnect(frame messageToFrame)
     {
@@ -90,20 +88,20 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             connections.send(connectionId, (T) confirmation.frameToString());
             receiptCheck(messageToFrame);
 
-        }else{
+        }
+        else
+        {
             //check if already connected || if the password is incorrect
             if (connections.allUsersByName.get(username).isLoggedIn || !connections.allUsersByName.get(username).userPassword.equals(password) )
             {
                 frame error = messageToFrame.errorFrame(messageToFrame);
                 connections.send(connectionId, (T) error.frameToString());
                 connections.disconnect(connectionId);
-
                 // connect the user
-            }else{
-
+            }else
+            {
                 User user = connections.allUsersByName.get(username);
                 connections.loginUser(user, connectionId);
-
                 // send to the client confirmation
                 frame confirmation = messageToFrame.connectedFrame();
                 connections.send(connectionId, (T) confirmation.frameToString());
@@ -112,7 +110,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
     }
 
-
     private void applyDisconnect(frame messageToFrame)
     {
         if(messageToFrame.getHeader("receipt -id") == null || !messageToFrame.getBody().isEmpty())
@@ -120,15 +117,16 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             frame error = messageToFrame.errorFrame(messageToFrame);
             connections.send(connectionId, (T) error.frameToString());
             connections.disconnect(connectionId);
-        }else{
-            frame reciept = messageToFrame.receiptFrame(messageToFrame.getHeader("receipt -id"));
+        }
+        else
+        {
+            frame receipt = messageToFrame.receiptFrame(messageToFrame.getHeader("receipt -id"));
             User u = connections.getUser(connectionId);
-            connections.send(connectionId, (T) reciept.frameToString());
+            connections.send(connectionId, (T) receipt.frameToString());
             connections.disconnectUser(u);
             //TODO : check if disconnect is needed
         }
     }
-
 
     private void applySubscribe(frame messageToFrame)
     {
@@ -137,15 +135,15 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             frame error = messageToFrame.errorFrame(messageToFrame);
             connections.send(connectionId, (T) error.frameToString());
             connections.disconnect(connectionId);
-        }else{
+        }
+        else
+        {
             String destination = messageToFrame.getHeader("destination");
             Integer id = Integer.parseInt(messageToFrame.getHeader("id"));
             connections.subscribe(destination,id, connectionId );
             receiptCheck(messageToFrame);
         }
     }
-
-
 
     private void applyUnsubscribe(frame messageToFrame)
     {
@@ -154,14 +152,14 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             frame error = messageToFrame.errorFrame(messageToFrame);
             connections.send(connectionId, (T) error.frameToString());
             connections.disconnect(connectionId);
-        }else {
+        }
+        else
+        {
             Integer id = Integer.parseInt(messageToFrame.getHeader("id"));
             connections.unsubscribe(id, connectionId);
             receiptCheck(messageToFrame);
         }
     }
-
-
 
     private void applySend(frame messageToFrame)
     {
@@ -191,15 +189,17 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         }
     }
 
-
+    private void applyError(frame messageToFrame)
+    {
+        frame error = messageToFrame.errorFrame(messageToFrame);
+        connections.send(connectionId, (T) error.frameToString());
+        connections.disconnect(connectionId);
+    }
 
     @Override
     public boolean shouldTerminate() {
         return false;
     }
-
-
-
 
     private void receiptCheck(frame messageToFrame)
     {
