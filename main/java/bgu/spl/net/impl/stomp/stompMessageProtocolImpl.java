@@ -75,7 +75,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         String password = messageToFrame.getHeader("passcode");
 
         //check if the user already exist
-        boolean exist = connections.isUserExist(username);
+        boolean exist = connections.isUserExistByName(username);
 
         // Adding a new user
         if(!exist)
@@ -212,7 +212,8 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         frame output = new frame("MESSAGE");
         output.addHeader("destination",messageToFrame.getHeader("destination") );
         output.addHeader("message -id","" + connections.messages.get(messageToFrame));
-        output.addHeader("subscription","" + userSubscribId);
+        //TODO : check if the subscription
+//        output.addHeader("subscription","" + userSubscribId);
         output.addBody(messageToFrame.getBody());
         return output;
     }

@@ -1,5 +1,6 @@
 package bgu.spl.net.impl.stomp;
 
+import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
+    public HashMap<Integer , ConnectionHandler<T>> idToConnectionHandler;
     public List<User> connectedUsers ;
     public HashMap<Integer , User> allUsersById ; // TODO : check if needs to be thread safe
     public HashMap<String , User> allUsersByName ;
@@ -23,31 +25,72 @@ public class ConnectionsImpl<T> implements Connections<T> {
         allUsersByName = new HashMap<String , User>();
         topicToUsers = new HashMap<String , ArrayList<User>>();
         messages = new HashMap<frame , Integer>();
+        idToConnectionHandler = new HashMap<Integer, ConnectionHandler<T>>();
         messagesCounter = new AtomicInteger();
+
     }
 
     @Override
     public boolean send(int connectionId, T msg) {
-        //TODO : implement
-        return false;
+        boolean sent = true;
+        try{
+            if(idToConnectionHandler.get(connectionId) != null)
+            {
+                idToConnectionHandler.get(connectionId).send(msg);
+            }
+        }catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            sent = false;
+        }
+        return sent;
     }
 
 
     @Override
-    public void send(String channel, T msg) {
-//TODO : implement
+    public void send(String channel, T msg)
+    {
+        frame toSend = new frame((String) msg);
+        if (topicToUsers.get(channel) != null)
+        {
+            for (User u :topicToUsers.get(channel) )
+            // TODO : find out if user send a message to himself
+            {
+                int userSubscribId = u.topicToSubscriptionID.get(channel);
+                toSend.addHeader("subscription","" + userSubscribId);
+                send(u.connectionId, (T) toSend.frameToString());
+            }
+        }
     }
 
     @Override
     public void disconnect(int connectionId) {
-        //TODO : add remove from all channels
-        //TODO : implement
+        if(isUserExistById(connectionId))
+        {
+            User toDisconnect = getUser(connectionId);
+            toDisconnect.setLogin();
+            connectedUsers.remove(toDisconnect); //remove from list of connected users
+            HashMap<Integer , String > subscriptionIDToTopic = toDisconnect.subscriptionIDToTopic;
+            for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
+                topicToUsers.remove(s, toDisconnect);
+        }
+        //TODO : delete socket
+    }
+    public void disconnectUser (User toDisconnect)
+    {
+        connectedUsers.remove(toDisconnect); //remove from list of connected users
+        toDisconnect.isLoggedIn = false;
+        HashMap<Integer , String > subscriptionIDToTopic = toDisconnect.subscriptionIDToTopic;
+        for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
+            topicToUsers.remove(s, toDisconnect);
+        //TODO : delete socket
     }
 
-    public boolean isUserExist(String username)
+
+
+    public boolean isUserExistByName(String username)
     {
-        //TODO : implement
-        return false;
+        return allUsersByName.get(username) != null;
     }
 
     public void addNewUser(User u,int connectionId)
@@ -64,14 +107,6 @@ public class ConnectionsImpl<T> implements Connections<T> {
             u.connectionId = connectionId;
         u.isLoggedIn = true;
     }
-
-    public void disconnectUser (User u)
-    {
-        //TODO : add remove from all channels
-        connectedUsers.remove(u);
-        u.isLoggedIn = false;
-    }
-
 
 
 
@@ -104,5 +139,10 @@ public class ConnectionsImpl<T> implements Connections<T> {
         messagesCounter.incrementAndGet();
     }
 
+
+    public boolean isUserExistById(int Id)
+    {
+        return (allUsersById.get(Id)!=null);
+    }
 
 }
