@@ -2,6 +2,9 @@ package bgu.spl.net.srv;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.MessagingProtocol;
+import bgu.spl.net.api.StompMessagingProtocol;
+import bgu.spl.net.impl.stomp.ConnectionsImpl;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,6 +16,8 @@ public abstract class BaseServer<T> implements Server<T> {
     private final Supplier<MessagingProtocol<T>> protocolFactory;
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
+    //Add connections to our server
+    private ConnectionsImpl<T> connections;
 
     public BaseServer(
             int port,
@@ -24,6 +29,7 @@ public abstract class BaseServer<T> implements Server<T> {
         this.protocolFactory = protocolFactory;
         this.encdecFactory = encdecFactory;
 		this.sock = null;
+        this.connections = new ConnectionsImpl<>();
     }
 
     @Override
@@ -42,6 +48,12 @@ public abstract class BaseServer<T> implements Server<T> {
                         clientSock,
                         encdecFactory.get(),
                         protocolFactory.get());
+
+                if(protocolFactory.get() instanceof StompMessagingProtocol)
+                {
+                    int connectionId = connections.addNewClient(handler);
+                    ((StompMessagingProtocol<T>) protocolFactory.get()).start(connectionId, connections);
+                }
 
                 execute(handler);
             }

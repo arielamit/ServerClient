@@ -10,7 +10,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     public ConnectionsImpl<T> connections;
 
     @Override
-    public void start(int connectionId, Connections<T> connections)
+    public void start(int connectionId, Connections<?> connections)
     {
         this.connectionId = connectionId;
         this.connections = (ConnectionsImpl<T>) connections;

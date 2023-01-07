@@ -17,6 +17,8 @@ public class ConnectionsImpl<T> implements Connections<T> {
     public HashMap<String, ArrayList<User>> topicToUsers ;
     public HashMap<frame, Integer> messages;
     private AtomicInteger messagesCounter;
+    private AtomicInteger clientCounter;
+
 
     public ConnectionsImpl()
     {
@@ -27,6 +29,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
         messages = new HashMap<frame , Integer>();
         idToConnectionHandler = new HashMap<Integer, ConnectionHandler<T>>();
         messagesCounter = new AtomicInteger();
+        clientCounter = new AtomicInteger();
 
     }
 
@@ -85,6 +88,13 @@ public class ConnectionsImpl<T> implements Connections<T> {
             topicToUsers.remove(s, toDisconnect);
 
         idToConnectionHandler.remove(toDisconnect.connectionId);
+    }
+
+    public int addNewClient (ConnectionHandler<T> handler )
+    {
+        int currConnectionId = clientCounter.incrementAndGet();
+        idToConnectionHandler.put(currConnectionId,handler);
+        return currConnectionId;
     }
 
 
