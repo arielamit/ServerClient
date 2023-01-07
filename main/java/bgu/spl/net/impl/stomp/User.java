@@ -10,7 +10,7 @@ public class User
     public String userPassword;
     public int connectionId;
     public HashMap<Integer , String > subscriptionIDToTopic;
-//    public HashMap<String , Integer > topicToSubscriptionID;
+    public HashMap<String , Integer > topicToSubscriptionID;
     public boolean isLoggedIn = false;
 
 
@@ -20,6 +20,7 @@ public class User
         this.userName = userName;
         this.userPassword = userPassword;
         this.subscriptionIDToTopic = new HashMap<Integer , String>();
+        this.topicToSubscriptionID = new HashMap<String , Integer>();
 
     }
 
@@ -28,15 +29,22 @@ public class User
     public void subscribe(int ID,String topic)
     {
         subscriptionIDToTopic.put(ID, topic);
+        topicToSubscriptionID.put(topic,ID);
     }
 
     public void unsubscribe (int ID , String topic)
     {
         subscriptionIDToTopic.remove(ID, topic);
+        topicToSubscriptionID.remove(topic,ID);
     }
 
     public String idToTopic (int ID)
     {
         return subscriptionIDToTopic.get(ID);
+    }
+
+    public int TopicToId (String Topic)
+    {
+        return topicToSubscriptionID.get(Topic);
     }
 }

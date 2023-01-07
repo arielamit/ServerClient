@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConnectionsImpl<T> implements Connections<T> {
 
     public List<User> connectedUsers ;
-    public HashMap<Integer , User> allUsersById ;
+    public HashMap<Integer , User> allUsersById ; // TODO : check if needs to be thread safe
     public HashMap<String , User> allUsersByName ;
     public HashMap<String, ArrayList<User>> topicToUsers ;
     public HashMap<frame, Integer> messages;
@@ -28,6 +28,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     @Override
     public boolean send(int connectionId, T msg) {
+        //TODO : implement
         return false;
     }
 
@@ -99,13 +100,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     public void addMessage(frame messageToFrame)
     {
-        messages.put(messageToFrame,messagesCounter);
-        messagesCounter++;
+        messages.put(messageToFrame,messagesCounter.get());
+        messagesCounter.incrementAndGet();
     }
 
-    public frame createMessage(frame messageToFrame)
-    {
-        messageToFrame
-    }
 
 }
