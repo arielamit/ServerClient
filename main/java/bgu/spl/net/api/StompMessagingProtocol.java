@@ -8,7 +8,7 @@ public interface StompMessagingProtocol<T> extends MessagingProtocol<T> {
 	**/
     void start(int connectionId, Connections<String> connections);
     
-    void process(String message);
+    T process(T message);
 	
 	/**
      * @return true if the connection should be terminated
