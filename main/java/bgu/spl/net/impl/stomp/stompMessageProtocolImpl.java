@@ -3,22 +3,22 @@ package bgu.spl.net.impl.stomp;
 import bgu.spl.net.api.StompMessagingProtocol;
 import bgu.spl.net.srv.Connections;
 
-public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
+public class stompMessageProtocolImpl implements StompMessagingProtocol<String> {
     // TODO : make sure connectionId is atomic Integer
     public int connectionId;
     public boolean shouldTerminate = false;
-    public ConnectionsImpl<T> connections;
+    public ConnectionsImpl connections;
 
     @Override
-    public void start(int connectionId, Connections<?> connections)
+    public void start(int connectionId, Connections<String> connections)
     {
         this.connectionId = connectionId;
-        this.connections = (ConnectionsImpl<T>) connections;
+        this.connections = (ConnectionsImpl) connections;
     }
 
     @Override
     // Expect message to be String object
-    public void process(T message)
+    public void process(String message)
     {
         frame messageToFrame = new frame((String) message);
         String command = messageToFrame.getCommand();
@@ -61,7 +61,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         {
             String error = "ERROR\n";
             error += "User is undefined\n";
-            connections.send(connectionId, (T) error);
+            connections.send(connectionId, error);
             connections.disconnect(connectionId);
         }
         return false;
@@ -86,26 +86,27 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             // send to the client confirmation
             frame confirmation = messageToFrame.connectedFrame();
             // TODO : check if (T) works - basemethod
-            connections.send(connectionId, (T) confirmation.frameToString());
+            connections.send(connectionId,  confirmation.frameToString());
             receiptCheck(messageToFrame);
 
         }else{
             //check if already connected || if the password is incorrect
-            if (connections.allUsersByName.get(username).isLoggedIn || !connections.allUsersByName.get(username).userPassword.equals(password) )
+            User u = (User) connections.allUsersByName.get(username);
+            if (u.isLoggedIn || !u.userPassword.equals(password) )
             {
                 frame error = messageToFrame.errorFrame(messageToFrame);
-                connections.send(connectionId, (T) error.frameToString());
+                connections.send(connectionId, error.frameToString());
                 connections.disconnect(connectionId);
 
                 // connect the user
             }else{
 
-                User user = connections.allUsersByName.get(username);
+                User user = (User) connections.allUsersByName.get(username);
                 connections.loginUser(user, connectionId);
 
                 // send to the client confirmation
                 frame confirmation = messageToFrame.connectedFrame();
-                connections.send(connectionId, (T) confirmation.frameToString());
+                connections.send(connectionId, confirmation.frameToString());
                 receiptCheck(messageToFrame);
             }
         }
@@ -117,12 +118,12 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         if(messageToFrame.getHeader("receipt -id") == null || !messageToFrame.getBody().isEmpty())
         {
             frame error = messageToFrame.errorFrame(messageToFrame);
-            connections.send(connectionId, (T) error.frameToString());
+            connections.send(connectionId, error.frameToString());
             connections.disconnect(connectionId);
         }else{
             frame reciept = messageToFrame.receiptFrame(messageToFrame.getHeader("receipt -id"));
             User u = connections.getUser(connectionId);
-            connections.send(connectionId, (T) reciept.frameToString());
+            connections.send(connectionId, reciept.frameToString());
             connections.disconnectUser(u);
             //TODO : check if disconnect is needed
         }
@@ -134,7 +135,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         if(!messageToFrame.body.isEmpty() || messageToFrame.getHeader("id") == null || messageToFrame.getHeader("destination") == null)
         {
             frame error = messageToFrame.errorFrame(messageToFrame);
-            connections.send(connectionId, (T) error.frameToString());
+            connections.send(connectionId, error.frameToString());
             connections.disconnect(connectionId);
         }else{
             String destination = messageToFrame.getHeader("destination");
@@ -151,7 +152,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         if(!messageToFrame.body.isEmpty() || messageToFrame.getHeader("id") == null )
         {
             frame error = messageToFrame.errorFrame(messageToFrame);
-            connections.send(connectionId, (T) error.frameToString());
+            connections.send(connectionId, error.frameToString());
             connections.disconnect(connectionId);
         }else {
             Integer id = Integer.parseInt(messageToFrame.getHeader("id"));
@@ -165,18 +166,19 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     private void applySend(frame messageToFrame)
     {
         String destination = messageToFrame.headers.get("destination");
+        User u = (User) connections.allUsersById.get(connectionId);
         //check if the frame has only destination header
         if(messageToFrame.headers.size()!=1 || destination==null)
         {
             frame error = messageToFrame.errorFrame(messageToFrame);
-            connections.send(connectionId, (T) error.frameToString());
+            connections.send(connectionId, error.frameToString());
             connections.disconnect(connectionId);
         }
         //check if the user subscribe the destination
-        else if(!connections.allUsersById.get(connectionId).subscriptionIDToTopic.containsValue(destination))
+        else if(!u.subscriptionIDToTopic.containsValue(destination))
         {
             frame error = messageToFrame.errorFrame(messageToFrame);
-            connections.send(connectionId, (T) error.frameToString());
+            connections.send(connectionId, error.frameToString());
             connections.disconnect(connectionId);
         }
         else
@@ -184,7 +186,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             connections.addMessage(messageToFrame);
             int userSubId = connections.getUser(connectionId).TopicToId(destination);
             frame toSend = createMessage(messageToFrame,userSubId);
-            connections.send(destination, (T) toSend.frameToString());
+            connections.send(destination, toSend.frameToString());
             receiptCheck(messageToFrame);
         }
     }
@@ -203,7 +205,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         if (messageToFrame.getHeader("receipt")!= null)
         {
             frame receipt = messageToFrame.receiptFrame(messageToFrame.getHeader("receipt"));
-            connections.send(connectionId, (T) receipt.frameToString());
+            connections.send(connectionId, receipt.frameToString());
         }
     }
 
@@ -222,7 +224,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     {
         String error = "ERROR\n";
         error += "General ERROR\n";
-        connections.send(connectionId, (T) error);
+        connections.send(connectionId, error);
         connections.disconnect(connectionId);
     }
 

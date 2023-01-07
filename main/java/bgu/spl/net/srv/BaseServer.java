@@ -52,7 +52,7 @@ public abstract class BaseServer<T> implements Server<T> {
                 if(protocolFactory.get() instanceof StompMessagingProtocol)
                 {
                     int connectionId = connections.addNewClient(handler);
-                    ((StompMessagingProtocol<T>) protocolFactory.get()).start(connectionId, connections);
+                    ((StompMessagingProtocol<T>) protocolFactory.get()).start(connectionId, (Connections<String>) connections);
                 }
 
                 execute(handler);
