@@ -4,7 +4,7 @@ import bgu.spl.net.api.StompMessagingProtocol;
 import bgu.spl.net.srv.Connections;
 
 public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
-    // TODO : make sure connectionId is atomic Integer
+    // TODO : find out where to terminate
     public int connectionId;
     public boolean shouldTerminate = false;
     public ConnectionsImpl<T> connections;
@@ -12,8 +12,11 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     @Override
     public void start(int connectionId, Connections<String> connections)
     {
+        System.out.println("Server has started -- stompMessageProtocolImpl 15");
         this.connectionId = connectionId;
-        this.connections = (ConnectionsImpl) connections;
+        System.out.println("connectionId =  " + connectionId);
+        this.connections = connections;
+        System.out.println(""+((ConnectionsImpl<String>) connections).return1());
     }
 
     @Override
