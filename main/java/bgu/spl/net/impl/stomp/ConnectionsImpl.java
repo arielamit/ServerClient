@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T> {
 
+    //Make connections a singeltone class
+    private static ConnectionsImpl<String> connections;
+
     public HashMap<Integer , ConnectionHandler<T>> idToConnectionHandler;
     public List<User> connectedUsers ;
     public HashMap<Integer , User> allUsersById ; // TODO : check if needs to be thread safe
@@ -20,7 +23,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
     private AtomicInteger clientCounter;
 
 
-    public ConnectionsImpl()
+    private ConnectionsImpl()
     {
         connectedUsers =  new ArrayList<User>();
         allUsersById = new HashMap<Integer , User>();
@@ -31,6 +34,13 @@ public class ConnectionsImpl<T> implements Connections<T> {
         messagesCounter = new AtomicInteger();
         clientCounter = new AtomicInteger();
 
+    }
+
+    public static ConnectionsImpl<String> getInstance()
+    {
+        if (connections == null)
+            connections = new ConnectionsImpl<>();
+        return connections;
     }
 
     @Override

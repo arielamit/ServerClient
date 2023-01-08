@@ -4,10 +4,12 @@ import bgu.spl.net.api.StompMessagingProtocol;
 import bgu.spl.net.srv.Connections;
 
 public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
-    // TODO : find out where to terminate
     public int connectionId;
+    // TODO : find out where to terminate
     public boolean shouldTerminate = false;
-    public ConnectionsImpl<T> connections;
+    public ConnectionsImpl<T> connections = (ConnectionsImpl<T>) ConnectionsImpl.getInstance();
+
+
 
     @Override
     public void start(int connectionId, Connections<String> connections)
@@ -15,7 +17,8 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         System.out.println("Server has started -- stompMessageProtocolImpl 15");
         this.connectionId = connectionId;
         System.out.println("connectionId =  " + connectionId);
-        this.connections = connections;
+//        this.connections = (ConnectionsImpl<T>) connections;
+//        System.out.println(connections);
         System.out.println(""+((ConnectionsImpl<String>) connections).return1());
     }
 
@@ -79,6 +82,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
         String password = messageToFrame.getHeader("passcode");
 
         //check if the user already exist
+        System.out.println(connections);
         boolean exist = connections.isUserExistByName(username);
 
         // Adding a new user
