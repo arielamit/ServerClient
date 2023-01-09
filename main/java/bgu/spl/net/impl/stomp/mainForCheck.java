@@ -29,7 +29,6 @@ public class mainForCheck
         try (stompClientForDebug c = new stompClientForDebug(host, 7777)) {
             c.send("CONNECT\n" + "login : meni\n");
 
-            System.out.println("runFirstClient 32 -- before receive ");
             c.receive(); //ok
 
         }

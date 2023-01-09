@@ -21,7 +21,9 @@ public class stompClientForDebug implements Closeable {
     public void send(String cmd) throws IOException {
         System.out.println("stompClientForDebug 22");
         out.write(encdec.encode(String.valueOf(cmd)));
+        System.out.println("stompClientForDebug 24");
         out.flush();
+        System.out.println("stompClientForDebug 26");
     }
 
     public Serializable receive() throws IOException {
@@ -39,9 +41,9 @@ public class stompClientForDebug implements Closeable {
 
     @Override
     public void close() throws IOException {
-//        System.out.println("stompClientForDebug 41 -- close");
-//        out.close();
-//        in.close();
-//        sock.close();
+        System.out.println("stompClientForDebug 41 -- close");
+        out.close();
+        in.close();
+        sock.close();
     }
 }

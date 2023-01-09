@@ -31,7 +31,6 @@ public abstract class BaseServer<T> implements Server<T> {
         this.encdecFactory = encdecFactory;
 		this.sock = null;
 //        this.connections = ConnectionsImpl<String>;
-        System.out.println("init base server");
     }
 
     @Override
@@ -53,12 +52,12 @@ public abstract class BaseServer<T> implements Server<T> {
 
                 if(protocolFactory.get() instanceof StompMessagingProtocol)
                 {
-                    System.out.println("got connection ID");
                     int connectionId = connections.addNewClient(handler);
-                    ((StompMessagingProtocol<T>) protocolFactory.get()).start(connectionId, (Connections<String>) connections);
+                    System.out.println(" The connection ID of the new client is (before start): " +connectionId );
+                    ((StompMessagingProtocol<T>) handler.getProtocol()).start(connectionId, (Connections<String>) connections);
                 // TODO : delete else
                 }else {
-                    System.out.println(" DIDNT got instance ");
+                    System.out.println(" DIDN'T got instance ");
                 }
 
                 execute(handler);

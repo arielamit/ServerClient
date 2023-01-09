@@ -45,10 +45,14 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     @Override
     public boolean send(int connectionId, T msg) {
+        System.out.println(" Got in to send -- connections 48 -- the ID is:" + connectionId);
         boolean sent = true;
+        System.out.println( " ID to Connection handler is -- connections 50 --  " + idToConnectionHandler.get(1) );
+
         try{
             if(idToConnectionHandler.get(connectionId) != null)
             {
+                System.out.println(" The msg that passes in connections is :" + msg + " Connections 52");
                 idToConnectionHandler.get(connectionId).send(msg);
             }
         }catch (Exception e)
@@ -56,6 +60,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
             System.out.println(e.getMessage());
             sent = false;
         }
+
         return sent;
     }
 
@@ -80,6 +85,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
     public void disconnect(int connectionId) {
         if(isUserExistById(connectionId))
         {
+            System.out.println("isUserExistById = true" + " coonections 83");
             User toDisconnect = getUser(connectionId);
             toDisconnect.isLoggedIn = false;
             connectedUsers.remove(toDisconnect); //remove from list of connected users
@@ -87,6 +93,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
                 topicToUsers.remove(s, toDisconnect);
         }
         idToConnectionHandler.remove(connectionId);
+        System.out.println(" connectionId was removed " + " connections 91" );
     }
 
 
@@ -104,6 +111,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
     {
         int currConnectionId = clientCounter.incrementAndGet();
         idToConnectionHandler.put(currConnectionId,handler);
+        System.out.println("Connection handler is -- connections 113" + handler);
+        System.out.println(" currConnectionId is -- connections 114 " + currConnectionId);
+        System.out.println("Connecion handler from hash is -- connections 115 -- " + idToConnectionHandler.get(currConnectionId) );
         return currConnectionId;
     }
 
@@ -111,7 +121,10 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     public boolean isUserExistByName(String username)
     {
-        return allUsersByName.get(username) != null;
+        // TODO : fix this syntax
+        boolean a = allUsersByName.get(username) != null;
+        System.out.println("ConnectionsImpl<T> -- isUserExistByName");
+        return a;
     }
 
     public void addNewUser(User u,int connectionId)

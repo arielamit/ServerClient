@@ -27,6 +27,7 @@ public class RCIClient implements Closeable {
     }
 
     public Serializable receive() throws IOException {
+        System.out.println("this should not be printed RCIClient 30");
         int read;
         while ((read = in.read()) >= 0) {
             Serializable msg = encdec.decodeNextByte((byte) read);

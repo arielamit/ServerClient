@@ -24,7 +24,8 @@ public class stompMessageEncoderDecoderImpl implements MessageEncoderDecoder<Str
 
     @Override
     public byte[] encode(String message) {
-        System.out.println("stompMessageEncoderDecoderImpl 27");
+        System.out.println("stompMessageEncoderDecoderImpl 27 -- encoding msg");
+        System.out.println(message + "\u0000");
         return (message + "\u0000").getBytes(); //uses utf8 by default
     }
 
