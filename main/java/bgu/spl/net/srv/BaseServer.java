@@ -53,7 +53,6 @@ public abstract class BaseServer<T> implements Server<T> {
                 if(protocolFactory.get() instanceof StompMessagingProtocol)
                 {
                     int connectionId = connections.addNewClient(handler);
-                    System.out.println(" The connection ID of the new client is (before start): " +connectionId );
                     ((StompMessagingProtocol<T>) handler.getProtocol()).start(connectionId, (Connections<String>) connections);
                 // TODO : delete else
                 }else {

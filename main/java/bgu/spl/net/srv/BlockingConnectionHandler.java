@@ -34,8 +34,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
                     T response = protocol.process(nextMessage);
-                    //TODO : delete next line
-                    System.out.println(" Response is : " + response );
+                    System.out.println(" At connection-handler the RESPONSE we try to send is: \n" + response);
                     if (response != null) {
                         out.write(encdec.encode(response));
                         out.flush();
@@ -59,6 +58,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
     public void send(T msg)
     {
         try{
+            System.out.println(" At connection-handler the message we try to send is: \n" + msg);
             out.write(encdec.encode(msg));
             out.flush();
         }catch (Exception e){

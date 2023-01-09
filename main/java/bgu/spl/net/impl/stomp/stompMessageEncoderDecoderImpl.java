@@ -24,8 +24,6 @@ public class stompMessageEncoderDecoderImpl implements MessageEncoderDecoder<Str
 
     @Override
     public byte[] encode(String message) {
-        System.out.println("stompMessageEncoderDecoderImpl 27 -- encoding msg");
-        System.out.println(message + "\u0000");
         return (message + "\u0000").getBytes(); //uses utf8 by default
     }
 
@@ -42,6 +40,7 @@ public class stompMessageEncoderDecoderImpl implements MessageEncoderDecoder<Str
         //this is not actually required as it is the default encoding in java.
         String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
         len = 0;
+        System.out.println(" THE RESULT before popString : \n" + result);
         return result;
     }
 }

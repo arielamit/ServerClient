@@ -15,11 +15,6 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     public void start(int connectionId, Connections<String> connections)
     {
         this.connectionId = connectionId;
-        System.out.println("--protocol 18--  The connection ID of start is:" + connectionId);
-        System.out.println("check this connection ID == " + this.connectionId);
-        System.out.println("--protocol 19-- make sure connections NO (NULL) == " + connections);
-        System.out.println("check this connections is No (NULL)== " + this.connections);
-        System.out.println("THIS PROTOCOL IS " + this);
 //        this.connections = (ConnectionsImpl<T>) connections;
 //        System.out.println(connections);
 
@@ -29,10 +24,8 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     // Expect message to be String object
     public T process(T message)
     {
-        System.out.println("THIS PROTOCOL AT PROCESS is :" + this);
         frame messageToFrame = new frame((String) message);
         String command = messageToFrame.getCommand();
-
         // switch case for all commands
         switch (command)
         {
@@ -59,6 +52,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             default:
                 applyError();
         }
+        message = (T) "";
         return message;
     }
 
@@ -66,17 +60,14 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     // make sure connect frame has all relevant values
     private boolean checkConnectValid(frame messageToFrame)
     {
-        System.out.println(" got in to checkConnectValid" + "check this: " + "this connectin ID = " + this.connectionId + "||| this connections = " + this.connections);
         if(messageToFrame.getHeader("login")!=null && messageToFrame.getHeader("passcode")!=null && messageToFrame.getHeader("host")!=null &&
                 messageToFrame.getHeader("accept - version")!=null )
         {
             return true;
         }else {
-            System.out.println(" got in to checkConnectValid -- needs to send Error");
             String error = "ERROR\n";
             error += "User is undefined\n";
             connections.send(connectionId, (T) error);
-            System.out.println("error is = " + error + " protocol 72");
             connections.disconnect(connectionId);
         }
         return false;
@@ -100,14 +91,11 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
 
     private void applyConnect(frame messageToFrame)
     {
-        System.out.println("stompMessageProtocolImpl<T> -- applyConnect first line 80");
         //TODO : check client frame validation
         String username = messageToFrame.getHeader("login");
         String password = messageToFrame.getHeader("passcode");
-        System.out.println("stompMessageProtocolImpl<T> -- applyConnect login + passcode 80");
 
         //check if the user already exist
-        System.out.println(connections);
         boolean exist = connections.isUserExistByName(username);
 
         // Adding a new user
@@ -116,13 +104,10 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             User new_User = new User(username,password, connectionId);
             connections.addNewUser(new_User, connectionId);
 
-            System.out.println("Added new user -- protocol 96");
             // send to the client confirmation
             frame confirmation = messageToFrame.connectedFrame();
-            System.out.println("confirmation is " + confirmation.frameToString() + "protocol line 99");
             // TODO : check if (T) works - basemethod
             connections.send(connectionId, (T) confirmation.frameToString());
-            System.out.println("succeeded sending the confirmation -- protocol line 102");
             receiptCheck(messageToFrame);
 
         }else{
