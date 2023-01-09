@@ -22,6 +22,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
 
     @Override
     // Expect message to be String object
+    // TODO : find out how to make this function void
     public T process(T message)
     {
         frame messageToFrame = new frame((String) message);
