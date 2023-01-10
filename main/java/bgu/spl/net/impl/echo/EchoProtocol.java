@@ -8,7 +8,8 @@ public class EchoProtocol implements MessagingProtocol<String> {
     private boolean shouldTerminate = false;
 
     @Override
-    public String process(String msg) {
+    public void process(String msg) {
+        System.out.println(" Got new Echo protocol");
         shouldTerminate = "bye".equals(msg);
         System.out.println("[" + LocalDateTime.now() + "]: " + msg);
         return createEcho(msg);

@@ -88,7 +88,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
             for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
                 topicToUsers.remove(s, toDisconnect);
         }
-        idToConnectionHandler.remove(connectionId);
+
+
+        idToConnectionHandler.remove(connectionId); // remove user from connection handler hash
     }
 
 
@@ -99,7 +101,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
         for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
             topicToUsers.remove(s, toDisconnect);
 
-        idToConnectionHandler.remove(toDisconnect.connectionId);
+        this.disconnect(toDisconnect.connectionId);
     }
 
     public int addNewClient (ConnectionHandler<T> handler )

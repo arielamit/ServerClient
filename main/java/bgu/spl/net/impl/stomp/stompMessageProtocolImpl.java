@@ -23,7 +23,7 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
     @Override
     // Expect message to be String object
     // TODO : find out how to make this function void
-    public T process(T message)
+    public void process(T message)
     {
         frame messageToFrame = new frame((String) message);
         String command = messageToFrame.getCommand();
@@ -53,8 +53,8 @@ public class stompMessageProtocolImpl<T> implements StompMessagingProtocol<T> {
             default:
                 applyError();
         }
-        message = (T) "";
-        return message;
+//        message = (T) "";
+//        return message;
     }
 
 
