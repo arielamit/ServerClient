@@ -39,7 +39,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
     {
         if (connections == null)
         {
-            synchronized (connections)
+            synchronized (ConnectionsImpl.class)
             {
                 if (connections == null)
                     connections = new ConnectionsImpl<>();
@@ -110,6 +110,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
     public int addNewClient (ConnectionHandler<T> handler )
     {
+
         int currConnectionId = clientCounter.incrementAndGet();
         idToConnectionHandler.put(currConnectionId,handler);
         return currConnectionId;
