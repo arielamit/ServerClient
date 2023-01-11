@@ -28,11 +28,10 @@ public class stompClientForDebug implements Closeable {
         while ((read = in.read()) >= 0) {
             Serializable msg = encdec.decodeNextByte((byte) read);
             if (msg != null) {
-                System.out.println("MSG IS : \n" + msg);
+                //               System.out.println("MSG IS : \n" + msg);
                 return msg;
             }
         }
-
         throw new IOException("disconnected before complete reading message");
     }
 

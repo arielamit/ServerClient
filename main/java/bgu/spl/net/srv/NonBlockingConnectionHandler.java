@@ -65,7 +65,6 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             close();
             return null;
         }
-
     }
 
     public void close() {
@@ -95,7 +94,6 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
                 close();
             }
         }
-
         if (writeQueue.isEmpty()) {
             if (protocol.shouldTerminate()) close();
             else reactor.updateInterestedOps(chan, SelectionKey.OP_READ);
@@ -107,7 +105,6 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
         if (buff == null) {
             return ByteBuffer.allocateDirect(BUFFER_ALLOCATION_SIZE);
         }
-
         buff.clear();
         return buff;
     }

@@ -12,7 +12,7 @@ public class RemoteCommandInvocationProtocol<T> implements MessagingProtocol<Ser
     }
 
     @Override
-    public void process(Serializable msg) {
+    public Serializable process(Serializable msg) {
         return ((Command) msg).execute(arg);
     }
 

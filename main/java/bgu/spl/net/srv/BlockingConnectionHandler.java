@@ -32,25 +32,23 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
                 T nextMessage = encdec.decodeNextByte((byte) read);
+                //System.out.println(" At BlockingConnectionHandler nextMessage is: " + nextMessage);
                 if (nextMessage != null) {
                     T response = protocol.process(nextMessage);
-                    System.out.println(" At connection-handler the RESPONSE we try to send is: \n" + response);
+                    //System.out.println(" At connection-handler the RESPONSE we try to send is: " + response);
                     if (response != null) {
                         out.write(encdec.encode(response));
                         out.flush();
                     }
                 }
             }
-
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
     }
 
     @Override
     public void close() throws IOException {
-        System.out.println("Closing the connection handler -- blocking connection handler");
         connected = false;
         sock.close();
     }
@@ -58,13 +56,17 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
     @Override
     public void send(T msg)
     {
-        try{
-            System.out.println(" At connection-handler the message we try to send is: \n" + msg);
+//        try{
+//            System.out.println(" At connection-handler the message we try to send is: \n" + msg);
+//            out.write(encdec.encode(msg));
+//            out.flush();
+//        }catch (Exception e){
+//            System.out.println(e.getMessage());
+//        }
+        try {
             out.write(encdec.encode(msg));
             out.flush();
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-        }
+        }catch(IOException ignored){}
     }
 
     public MessagingProtocol<T> getProtocol()

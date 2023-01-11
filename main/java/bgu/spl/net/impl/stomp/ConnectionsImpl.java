@@ -11,14 +11,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConnectionsImpl<T> implements Connections<T> {
 
     //Make connections a singeltone class
-    private static ConnectionsImpl<String> connections;
+    private static volatile ConnectionsImpl<String> connections;
 
     public HashMap<Integer , ConnectionHandler<T>> idToConnectionHandler;
     public List<User> connectedUsers ;
-    public HashMap<Integer , User> allUsersById ; // TODO : check if needs to be thread safe
-    public HashMap<String , User> allUsersByName ;
-    public HashMap<String, ArrayList<User>> topicToUsers ;
-    public HashMap<frame, Integer> messages;
+    public HashMap<Integer,User> allUsersById ; // TODO : check if needs to be thread safe
+    public HashMap<String,User> allUsersByName ;
+    public HashMap<String,ArrayList<User>> topicToUsers ;
+    public HashMap<frame,Integer> messages;
     private AtomicInteger messagesCounter;
     private AtomicInteger clientCounter;
 
@@ -33,13 +33,18 @@ public class ConnectionsImpl<T> implements Connections<T> {
         idToConnectionHandler = new HashMap<Integer, ConnectionHandler<T>>();
         messagesCounter = new AtomicInteger();
         clientCounter = new AtomicInteger();
-
     }
 
     public static ConnectionsImpl<String> getInstance()
     {
         if (connections == null)
-            connections = new ConnectionsImpl<>();
+        {
+            synchronized (connections)
+            {
+                if (connections == null)
+                    connections = new ConnectionsImpl<>();
+            }
+        }
         return connections;
     }
 
@@ -49,7 +54,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
         try{
             if(idToConnectionHandler.get(connectionId) != null)
             {
-                System.out.println(" At connections, the message we want to send is: \n" + msg);
+                //System.out.println("At connections, the message we want to send is: \n" + msg);
                 idToConnectionHandler.get(connectionId).send(msg);
             }
         }catch (Exception e)
@@ -57,7 +62,6 @@ public class ConnectionsImpl<T> implements Connections<T> {
             System.out.println(e.getMessage());
             sent = false;
         }
-
         return sent;
     }
 
@@ -69,39 +73,39 @@ public class ConnectionsImpl<T> implements Connections<T> {
         if (topicToUsers.get(channel) != null)
         {
             for (User u :topicToUsers.get(channel) )
-            // TODO : find out if user send a message to himself
             {
-                int userSubscribId = u.topicToSubscriptionID.get(channel);
-                toSend.addHeader("subscription","" + userSubscribId);
+                int userSubscribeId = u.topicToSubscriptionID.get(channel);
+                toSend.addHeader("subscription","" + userSubscribeId);
                 send(u.connectionId, (T) toSend.frameToString());
             }
         }
     }
 
+
+
     @Override
     public void disconnect(int connectionId) {
         if(isUserExistById(connectionId))
         {
-            User toDisconnect = getUser(connectionId);
-            toDisconnect.isLoggedIn = false;
+            User toDisconnect = getUserById(connectionId);
+            toDisconnect.setLogin(false);
             connectedUsers.remove(toDisconnect); //remove from list of connected users
             for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
                 topicToUsers.remove(s, toDisconnect);
         }
+        idToConnectionHandler.remove(connectionId);
 
-
-        idToConnectionHandler.remove(connectionId); // remove user from connection handler hash
+        //TODO : check that this user has no commands in socket
     }
 
 
     public void disconnectUser (User toDisconnect)
     {
         connectedUsers.remove(toDisconnect); //remove from list of connected users
-        toDisconnect.isLoggedIn = false;
+        toDisconnect.setLogin(false);
         for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
             topicToUsers.remove(s, toDisconnect);
-
-        this.disconnect(toDisconnect.connectionId);
+        idToConnectionHandler.remove(toDisconnect.connectionId);
     }
 
     public int addNewClient (ConnectionHandler<T> handler )
@@ -111,13 +115,10 @@ public class ConnectionsImpl<T> implements Connections<T> {
         return currConnectionId;
     }
 
-
-
     public boolean isUserExistByName(String username)
     {
         // TODO : fix this syntax
-        boolean a = allUsersByName.get(username) != null;
-        return a;
+        return (allUsersByName.get(username) != null);
     }
 
     public void addNewUser(User u,int connectionId)
@@ -132,24 +133,19 @@ public class ConnectionsImpl<T> implements Connections<T> {
         connectedUsers.add(u);
         if (u.connectionId != connectionId)
             u.connectionId = connectionId;
-        u.isLoggedIn = true;
+        u.setLogin(true);;
     }
 
+    public User getUserById (int Id) { return allUsersById.get(Id);}
 
-
-    public User getUser (int ID) { return allUsersById.get(ID);}
-
-    public User getUser (String userName) { return allUsersByName.get(userName);}
+    public User getUserByName (String userName) { return allUsersByName.get(userName);}
 
     public void subscribe(String destination, Integer id, int connectionId)
     {
         if(topicToUsers.get(destination) == null)
-        {
             topicToUsers.put(destination,new ArrayList<>());
-        }
         topicToUsers.get(destination).add(allUsersById.get(connectionId));
         allUsersById.get(connectionId).subscribe(id,destination) ;
-
     }
 
     public void unsubscribe(Integer id, int connectionId)
@@ -166,12 +162,10 @@ public class ConnectionsImpl<T> implements Connections<T> {
         messagesCounter.incrementAndGet();
     }
 
-
     public boolean isUserExistById(int Id)
     {
         return (allUsersById.get(Id)!=null);
     }
 
     public int return1() {return 1;} // TODO : delete. made for debug
-
 }
