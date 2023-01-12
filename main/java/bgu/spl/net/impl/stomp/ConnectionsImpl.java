@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConnectionsImpl<T> implements Connections<T> {
 
     //Make connections a singeltone class
-    private static volatile ConnectionsImpl<String> connections;
+    private static ConnectionsImpl<String> connections;
 
     public HashMap<Integer , ConnectionHandler<T>> idToConnectionHandler;
     public List<User> connectedUsers ;
@@ -35,16 +35,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
         clientCounter = new AtomicInteger();
     }
 
-    public static ConnectionsImpl<String> getInstance()
-    {
+    public static ConnectionsImpl<String> getInstance() {
         if (connections == null)
-        {
-            synchronized (ConnectionsImpl.class)
-            {
-                if (connections == null)
-                    connections = new ConnectionsImpl<>();
-            }
-        }
+            connections = new ConnectionsImpl<>();
         return connections;
     }
 
@@ -52,13 +45,11 @@ public class ConnectionsImpl<T> implements Connections<T> {
     public boolean send(int connectionId, T msg) {
         boolean sent = true;
         try{
-            if(idToConnectionHandler.get(connectionId) != null)
-            {
+            if(idToConnectionHandler.get(connectionId) != null) {
                 //System.out.println("At connections, the message we want to send is: \n" + msg);
                 idToConnectionHandler.get(connectionId).send(msg);
             }
-        }catch (Exception e)
-        {
+        }catch (Exception e) {
             System.out.println(e.getMessage());
             sent = false;
         }
@@ -67,13 +58,10 @@ public class ConnectionsImpl<T> implements Connections<T> {
 
 
     @Override
-    public void send(String channel, T msg)
-    {
+    public void send(String channel, T msg) {
         frame toSend = new frame((String) msg);
-        if (topicToUsers.get(channel) != null)
-        {
-            for (User u :topicToUsers.get(channel) )
-            {
+        if (topicToUsers.get(channel)!=null) {
+            for (User u :topicToUsers.get(channel) ) {
                 int userSubscribeId = u.topicToSubscriptionID.get(channel);
                 toSend.addHeader("subscription","" + userSubscribeId);
                 send(u.connectionId, (T) toSend.frameToString());
@@ -81,12 +69,9 @@ public class ConnectionsImpl<T> implements Connections<T> {
         }
     }
 
-
-
     @Override
     public void disconnect(int connectionId) {
-        if(isUserExistById(connectionId))
-        {
+        if(isUserExistById(connectionId)) {
             User toDisconnect = getUserById(connectionId);
             toDisconnect.setLogin(false);
             connectedUsers.remove(toDisconnect); //remove from list of connected users
@@ -98,9 +83,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
         //TODO : check that this user has no commands in socket
     }
 
-
-    public void disconnectUser (User toDisconnect)
-    {
+    public void disconnectUser (User toDisconnect) {
         connectedUsers.remove(toDisconnect); //remove from list of connected users
         toDisconnect.setLogin(false);
         for(String s: topicToUsers.keySet()) //remove from each topic this user subscribed
@@ -108,65 +91,59 @@ public class ConnectionsImpl<T> implements Connections<T> {
         idToConnectionHandler.remove(toDisconnect.connectionId);
     }
 
-    public int addNewClient (ConnectionHandler<T> handler )
-    {
-
+    public int addNewClient (ConnectionHandler<T> handler ) {
         int currConnectionId = clientCounter.incrementAndGet();
         idToConnectionHandler.put(currConnectionId,handler);
         return currConnectionId;
     }
 
-    public boolean isUserExistByName(String username)
-    {
-        // TODO : fix this syntax
-        return (allUsersByName.get(username) != null);
+    public boolean isUserExistByName(String username) {
+        return (allUsersByName.get(username)!=null);
     }
 
-    public void addNewUser(User u,int connectionId)
-    {
+    public void addNewUser(User u,int connectionId) {
         allUsersById.put(u.connectionId , u);
         allUsersByName.put(u.userName, u);
         loginUser(u,connectionId);
     }
 
-    public void loginUser(User u, int connectionId)
-    {
+    public void loginUser(User u, int connectionId) {
         connectedUsers.add(u);
         if (u.connectionId != connectionId)
             u.connectionId = connectionId;
         u.setLogin(true);;
     }
 
-    public User getUserById (int Id) { return allUsersById.get(Id);}
+    public User getUserById (int Id) {
+        return allUsersById.get(Id);
+    }
 
-    public User getUserByName (String userName) { return allUsersByName.get(userName);}
+    public User getUserByName (String userName) {
+        return allUsersByName.get(userName);
+    }
 
-    public void subscribe(String destination, Integer id, int connectionId)
-    {
-        if(topicToUsers.get(destination) == null)
+    public void subscribe(String destination, Integer subscriptionId, int connectionId) {
+        if(topicToUsers.get(destination)==null)
             topicToUsers.put(destination,new ArrayList<>());
+        connections.getUserById(connectionId).subscribe(subscriptionId, destination);
         topicToUsers.get(destination).add(allUsersById.get(connectionId));
-        allUsersById.get(connectionId).subscribe(id,destination) ;
+        allUsersById.get(connectionId).subscribe(subscriptionId,destination) ;
     }
 
-    public void unsubscribe(Integer id, int connectionId)
-    {
+    public void unSubscribe(Integer subscriptionIdToInt, int connectionId) {
+        //after check the user is already subscribe the topic
         User u = allUsersById.get(connectionId);
-        String topic = u.idToTopic(id);
+        String topic = u.idToTopic(subscriptionIdToInt);
         topicToUsers.get(topic).remove(u);
-        u.unsubscribe(id,topic);
+        u.unsubscribe(subscriptionIdToInt,topic);
     }
 
-    public void addMessage(frame messageToFrame)
-    {
+    public void addMessage(frame messageToFrame) {
         messages.put(messageToFrame,messagesCounter.get());
         messagesCounter.incrementAndGet();
     }
 
-    public boolean isUserExistById(int Id)
-    {
-        return (allUsersById.get(Id)!=null);
+    public boolean isUserExistById(int Id) {
+        return (!allUsersById.get(Id).equals(null));
     }
-
-    public int return1() {return 1;} // TODO : delete. made for debug
 }

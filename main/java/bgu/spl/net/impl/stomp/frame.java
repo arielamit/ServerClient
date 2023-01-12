@@ -9,23 +9,28 @@ public class frame {
 
     public frame(String input)
     {
-        headers = new HashMap<String, String>();
-        //convert input String into frame object
         String[] allFrameLines = input.split("\n");
         command = allFrameLines[0];
+        initHeaders(input);
+        int numOfHeaders = headers.size();
+        String accBody = "";
+        for(int j=numOfHeaders+1; j<allFrameLines.length && allFrameLines[j]!=null; j++)
+            accBody = accBody + allFrameLines[j] + "\n";
+        body = accBody;
+    }
+
+    private void initHeaders(String input) {
+        headers = new HashMap<String, String>();
+        String[] allFrameLines = input.split("\n");
         boolean stop = false;
-        for (int i=1 ; i<allFrameLines.length && !stop; i++)
-        {
-            if(allFrameLines[i] != "" && allFrameLines[i] != null && !allFrameLines[i].isEmpty())
-            {
+        int bodyStartIndex = 0;
+        for (int i=1 ; i<allFrameLines.length && !stop; i++) {
+            if(allFrameLines[i] != "" && allFrameLines[i]!=null && !allFrameLines[i].isEmpty()) {
                 String[] splitLine = allFrameLines[i].split(":");
                 headers.put(splitLine[0],splitLine[1]);
             }
-            else if(allFrameLines[i]!="\u0000")
-            {
-                body = allFrameLines[i] + "\n";
+            else
                 stop = true;
-            }
         }
     }
 
@@ -48,19 +53,16 @@ public class frame {
     public String getBody() {
         return body;
     }
-    public String receiptFrame(String receiptId)
-    {
+    public String receiptFrame(String receiptId) {
         return "RECEIPT\nreceipt-id:"+receiptId+"\n\n\u0000";
     }
-    public String connectedFrame()
-    {
+    public String connectedFrame() {
         return "CONNECTED\nversion:1.2\n\n\u0000";
     }
 
-    public String errorFrame(frame errorReason)
-    {
+    public String errorFrame(frame errorReason, String body) {
         String errorReasonCommand = errorReason.getCommand();
-        String errorType = null;
+        String errorType = "";
         switch (errorReasonCommand)
         {
             case("CONNECT"):
@@ -82,16 +84,16 @@ public class frame {
                 return null;
         }
         String receiptId = errorReason.getHeader("receipt-id");
-        return "ERROR\nreceipt-id:"+errorType+"-"+receiptId+"\nthe frame you sent:\n"+errorReason.frameToString()+"\n\n\u0000";
+        if(receiptId==null)
+            return "ERROR\nthe frame you sent:\n"+errorReason.frameToString()+"\n"+body+"\n\n\u0000";
+        return "ERROR\nreceipt-id:"+errorType+"-"+receiptId+"\nthe frame you sent:\n"+errorReason.frameToString()+"\n"+body+"\n\n\u0000";
     }
-    public String frameToString()
-    {
+    public String frameToString() {
         String output = command + "\n";
         for(String header: headers.keySet())
-            output = output +header+headers.get(header) + "\n";
+            output = output + header + ":" + headers.get(header) + "\n";
         if (body != "\u0000")
             output = output + body;
-        output = output + "\u0000" ;
         return output;
     }
 }

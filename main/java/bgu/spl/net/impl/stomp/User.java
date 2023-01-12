@@ -9,7 +9,7 @@ public class User
     public String userName;
     public String userPassword;
     public int connectionId;
-    public HashMap<Integer ,String> subscriptionIDToTopic;
+    public HashMap<Integer ,String> subscriptionIdToTopic;
     public HashMap<String ,Integer> topicToSubscriptionID;
     private boolean isLoggedIn;
 
@@ -18,7 +18,7 @@ public class User
         this.connectionId = connectionId;
         this.userName = userName;
         this.userPassword = userPassword;
-        this.subscriptionIDToTopic = new HashMap<Integer , String>();
+        this.subscriptionIdToTopic = new HashMap<Integer , String>();
         this.topicToSubscriptionID = new HashMap<String , Integer>();
         this.isLoggedIn = true;
     }
@@ -31,33 +31,21 @@ public class User
         isLoggedIn = val;
     }
 
-    public String getUserName(){
-        return userName;
-    }
-
-    public int getConnectionId(){
-        return connectionId;
-    }
-
-    public void subscribe(int Id,String topic)
-    {
-        subscriptionIDToTopic.put(Id,topic);
+    public void subscribe(int Id,String topic) {
+        subscriptionIdToTopic.put(Id,topic);
         topicToSubscriptionID.put(topic,Id);
     }
 
-    public void unsubscribe (int Id,String topic)
-    {
-        subscriptionIDToTopic.remove(Id,topic);
+    public void unsubscribe (int Id,String topic) {
+        subscriptionIdToTopic.remove(Id,topic);
         topicToSubscriptionID.remove(topic,Id);
     }
 
-    public String idToTopic (int Id)
-    {
-        return subscriptionIDToTopic.get(Id);
+    public String idToTopic (int Id) {
+        return subscriptionIdToTopic.get(Id);
     }
 
-    public int TopicToId (String Topic)
-    {
+    public int TopicToId (String Topic) {
         return topicToSubscriptionID.get(Topic);
     }
 }

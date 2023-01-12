@@ -26,7 +26,7 @@ public class mainForCheck
     private static void runFirstClient(String host) throws Exception {
         try (stompClientForDebug c = new stompClientForDebug(host, 7777)) {
            c.send("CONNECT\nhost:stomp.cs.bgu.ac.il\naccept-version:1.2\nlogin:ArielAmit\npasscode:13\n\n\u0000");
-//           c.send("SUBSCRIBE\ndestination:15\nid:1\nreceipt:73\n\n\u0000");
+           c.send("SUBSCRIBE\ndestination:15\nid:1\nreceipt:73\n\n\u0000");
 //           c.send("SUBSCRIBE\ndestination:/topic/a\nid:78");
 //           c.send("SEND\ndestination:/topic/a\n\nHello Topic a");
 //           c.send("UNSUBSCRIBE\nid:78");
